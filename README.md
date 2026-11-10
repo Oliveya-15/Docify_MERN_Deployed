@@ -320,8 +320,9 @@ Three collections cover the whole product. Appointments link to users and doctor
 |---|---|
 | 🌐 **Patient app** | [docify-frontend-yw8c.onrender.com](https://docify-frontend-yw8c.onrender.com) |
 | 📊 **Admin & Doctor panel** | [docify-admin.onrender.com](https://docify-admin.onrender.com) |
-| ⚙️ **API** | [https://docify-backend-3yzh.onrender.com] (https://docify-backend-3yzh.onrender.com) |
+| ⚙️ **API** | [docify-backend-3yzh.onrender.com](https://docify-backend-3yzh.onrender.com) |
 | 📦 **Source** | [github.com/Oliveya-15/Docify_MERN_Deployed](https://github.com/Oliveya-15/Docify_MERN_Deployed) |
+
 
 > 🔑 Create a free account on the sign-up page to explore the patient app and book a visit. The admin and doctor panel is for staff only.
 > ⚠️ Payments run through Razorpay, so use test mode and test cards unless you really mean to pay.
