@@ -32,7 +32,7 @@
 - [🤖 DocTalk AI Assistant](#-doctalk-ai-assistant)
 - [📅 Booking & Slot Management](#-booking--slot-management)
 - [💳 Payments with Razorpay](#-payments-with-razorpay)
-- [🩺 Doctor Panel & Admin Panel](#-doctor-panel--admin-panel)
+- [🛠️ Admin Panel & Doctor Panel](#-admin-panel--doctor-panel)
 - [🔐 Authentication & Security](#-authentication--security)
 - [🧱 Architecture & Workflow](#-architecture--workflow)
 - [🧰 Tech Stack](#-tech-stack)
@@ -98,15 +98,7 @@
 </tr>
 </table>
 
-### 🩺 Doctor Panel
-
-<table>
-<tr>
-<td width="50%"><img src="public/screenshot-doctor-appointments.png" alt="Doctor appointments"/><p align="center"><sub><strong>Appointments</strong>: payment mode, fees, complete or cancel</sub></p></td>
-</tr>
-</table>
-
-### 🛠️ Admin Panel
+### 🛠️ Admin Panel & Doctor Panel
 
 <p align="center"><img src="public/screenshot-admin-dashboard.png" alt="Admin dashboard" width="820"/></p>
 <p align="center"><sub><strong>Dashboard</strong>: total doctors, appointments, patients and the latest bookings</sub></p>
@@ -115,6 +107,9 @@
 <tr>
 <td width="50%"><img src="public/screenshot-admin-add-doctor.png" alt="Add doctor"/><p align="center"><sub><strong>Add Doctor</strong>: photo upload, credentials, fees and address</sub></p></td>
 <td width="50%"><img src="public/screenshot-admin-doctors.png" alt="Doctors list"/><p align="center"><sub><strong>Doctors List</strong>: toggle availability with one click</sub></p></td>
+</tr>
+<tr>
+<td width="50%" colspan="2"><img src="public/screenshot-doctor-appointments.png" alt="Doctor appointments"/><p align="center"><sub><strong>Doctor Appointments</strong>: payment mode, fees, complete or cancel</sub></p></td>
 </tr>
 </table>
 
@@ -200,7 +195,7 @@ Switching mode clears the conversation. If the doctor database can't be read, Do
 
 ---
 
-## 🩺 Doctor Panel & Admin Panel
+## 🛠️ Admin Panel & Doctor Panel
 
 Both roles share **one admin app** with a role-aware login. The login card switches between *Admin* and *Doctor*, and the sidebar, routes and navbar badge change to match whoever signed in.
 
@@ -342,245 +337,5 @@ Three collections cover the whole product. Appointments link to users and doctor
 ### 1. Clone
 
 ```bash
-git clone https://github.com/Oliveya-15/Docify_MERN_Deployed.git
+git clone [https://github.com/Oliveya-15/Docify_MERN_Deployed.git](https://github.com/Oliveya-15/Docify_MERN_Deployed.git)
 cd Docify_MERN_Deployed
-```
-
-### 2. Backend
-
-```bash
-cd backend
-npm install
-# create backend/.env  (see "Environment Variables" below)
-
-npm run server        # nodemon, http://localhost:4000
-# or: npm start       # plain node
-```
-
-### 3. Patient app
-
-```bash
-cd frontend
-npm install
-# create frontend/.env  (see "Environment Variables" below)
-npm run dev           # http://localhost:5173
-```
-
-### 4. Admin & Doctor panel
-
-```bash
-cd admin
-npm install
-# create admin/.env with VITE_BACKEND_URL=http://localhost:4000
-npm run dev           # http://localhost:5174
-```
-
-### 5. First-time setup
-
-1. Open the admin panel and log in with the `ADMIN_EMAIL` and `ADMIN_PASSWORD` from your backend `.env`.
-2. Go to **Add Doctor** and create a few doctors. Each needs a photo, email and a password of at least 8 characters.
-3. Doctors can now sign in from the same login page by choosing **Doctor Login**.
-4. In the patient app, sign up as a patient, book an appointment and try the Razorpay test checkout.
-5. Open **DocTalk** and ask for a specialist to see the doctors you just added come back as cards.
-
-> There is no seed script. The admin comes from your environment variables and every doctor is created through the panel.
-
-<br/>
-
----
-
-## 🔧 Environment Variables
-
-**`backend/.env`**
-
-| Variable | Required | Purpose |
-|---|---|---|
-| `MONGODB_URI` | ✅ | MongoDB connection string |
-| `JWT_SECRET` | ✅ | Secret used to sign every token, so make it long and random |
-| `ADMIN_EMAIL` · `ADMIN_PASSWORD` | ✅ | The single admin login |
-| `CLOUDINARY_NAME` · `CLOUDINARY_API_KEY` · `CLOUDINARY_SECRET_KEY` | ✅ | Photo storage |
-| `RAZORPAY_KEY_ID` · `RAZORPAY_KEY_SECRET` | ✅ | Razorpay API credentials |
-| `CURRENCY` | ✅ | Currency code for Razorpay orders, for example `INR` |
-| `GROQ_API_KEY` | ✅ | Powers DocTalk. Without it the chat endpoint returns an error |
-| `PORT` | | Server port, default `4000` |
-
-**`frontend/.env`**
-
-| Variable | Purpose |
-|---|---|
-| `VITE_BACKEND_URL` | Base URL of the API, for example `http://localhost:4000` |
-| `VITE_RAZORPAY_KEY_ID` | Public Razorpay key id used by the Checkout |
-
-**`admin/.env`**
-
-| Variable | Purpose |
-|---|---|
-| `VITE_BACKEND_URL` | Base URL of the API |
-
-> 🔒 Never commit a real `.env` file. The root `.gitignore` already excludes it.
-
-<br/>
-
----
-
-## 🔌 API Overview
-
-Every route lives under `/api`. Auth is sent in a request header: `token` (patient), `dtoken` (doctor) or `atoken` (admin). Most endpoints reply with `{ success, message }` and return data in extra fields.
-
-### 👤 Patients: `/api/user`
-
-| Method | Route | Auth | Purpose |
-|---|---|---|---|
-| POST | `/register` | – | Create an account and receive a token |
-| POST | `/login` | – | Sign in and receive a token |
-| GET | `/get-profile` | `token` | Current patient profile |
-| POST | `/update-profile` | `token` | Update details and photo (multipart) |
-| POST | `/book-appointment` | `token` | Book a doctor, date and time slot |
-| GET | `/appointments` | `token` | The patient's appointments |
-| POST | `/cancel-appointment` | `token` | Cancel and release the slot |
-| POST | `/payment-razorpay` | `token` | Create a Razorpay order |
-| POST | `/verifyrazorpay` | `token` | Verify the order with Razorpay and mark it paid |
-
-### 🧑‍⚕️ Doctors: `/api/doctor`
-
-| Method | Route | Auth | Purpose |
-|---|---|---|---|
-| GET | `/list` | – | Public doctor list (no email or password) |
-| GET | `/search?q=` | – | Multi-term search across name, speciality, degree, experience, about and address |
-| POST | `/login` | – | Doctor sign-in |
-| GET | `/appointments` | `dtoken` | The doctor's appointments |
-| POST | `/complete-appointment` | `dtoken` | Mark an appointment completed |
-| POST | `/cancel-appointment` | `dtoken` | Cancel an appointment |
-| GET | `/dashboard` | `dtoken` | Earnings, patients and latest bookings |
-| GET | `/profile` | `dtoken` | The doctor's profile |
-| POST | `/update-profile` | `dtoken` | Update fees, address and availability |
-
-### 🛠️ Admin: `/api/admin`
-
-| Method | Route | Auth | Purpose |
-|---|---|---|---|
-| POST | `/login` | – | Admin sign-in |
-| POST | `/add-doctor` | `atoken` | Create a doctor (multipart with photo) |
-| POST | `/all-doctors` | `atoken` | Every doctor, without passwords |
-| POST | `/change-availability` | `atoken` | Toggle a doctor's availability |
-| GET | `/appointments` | `atoken` | Every appointment |
-| POST | `/cancel-appointment` | `atoken` | Cancel any appointment and release the slot |
-| GET | `/dashboard` | `atoken` | Platform totals and latest bookings |
-
-### 🤖 DocTalk: `/api/chat`
-
-| Method | Route | Purpose |
-|---|---|---|
-| POST | `/` | Body: `{ message, mode: "general" \| "mental", history }`. Returns `{ success, reply, matchedDoctors }` |
-
-```bash
-curl https://YOUR-BACKEND-URL.onrender.com/
-# API Working Great
-```
-
-<br/>
-
----
-
-## 📁 Project Structure
-
-```
-Docify_MERN_Deployed/
-├── public/                     README images: logo, screenshots, diagrams
-│
-├── backend/
-│   ├── config/                 mongodb.js · cloudinary.js
-│   ├── controllers/            userController · doctorController · adminController · chatController
-│   ├── middlewares/            authUser.js · authDoctor.js · authAdmin.js · multer.js
-│   ├── models/                 userModel · doctorModel · appointmentModel
-│   ├── routes/                 userRoute · doctorRoute · adminRoute · chatRoute
-│   └── server.js
-│
-├── frontend/                   patient app
-│   └── src/
-│       ├── assets/             logos, icons, speciality artwork, sample doctor images
-│       ├── components/         Navbar, Header, SpecialityMenu, TopDoctors, RelatedDoctors, Banner, Footer
-│       ├── context/            AppContext (doctors, token, profile)
-│       └── pages/              Home, Doctors, Appointment, MyAppointments, MyProfile,
-│                               Login, About, Contact, SearchResults, doctalk
-│
-└── admin/                      admin and doctor panel
-    └── src/
-        ├── assets/             icons and logos
-        ├── components/         Navbar, Sidebar
-        ├── context/            AdminContext · DoctorContext · AppContext
-        └── pages/
-            ├── Admin/          Dashboard, AllAppointments, AddDoctor, DoctorList
-            ├── Doctor/         DoctorDashboard, DoctorAppointments, DoctorProfile
-            └── Login.jsx       one login, two roles
-```
-
-<br/>
-
----
-
-## 🧪 Honest Limitations
-
-| | |
-|---|---|
-| **Payment confirmation is browser-triggered** | The server verifies with Razorpay, but only when the browser calls the verify endpoint after checkout. There are no Razorpay webhooks yet, so a payment completed just before the tab closes can stay unmarked. |
-| **No automatic refunds** | Cancelling a paid appointment frees the slot but does not refund the money. Refunds would be handled manually in the Razorpay dashboard. |
-| **Doctor cancellation keeps the slot taken** | When a patient or the admin cancels, the slot is released. When a doctor cancels from their panel, the appointment is flagged cancelled but the slot is not freed. |
-| **Slot booking is not atomic** | The API reads the doctor's slots, checks, then writes. Two simultaneous bookings for the same slot could in theory both succeed. |
-| **One fixed schedule** | Every doctor uses the same seven-day, 10:00 to 21:00, half-hour grid. There are no per-doctor working hours or days off yet. |
-| **No rescheduling** | A patient cancels and books again. |
-| **Tokens do not expire** | JWTs are signed without an expiry and live in `localStorage` until logout. |
-| **Single admin from environment variables** | There is one admin account, with no multi-admin support or role management. The admin token's payload is built from the admin credentials, and JWT payloads are readable by anyone holding the token, so it should be replaced with a role claim. |
-| **DocTalk is gated in the UI only** | The chat page asks for login, but the `/api/chat` route does not verify a token, and there is no rate limit on it. |
-| **Search needs a signed-in session** | The search page checks for a login token on the client before it queries doctors. |
-| **Uploads are not validated** | There is no file-type or size filter on photo uploads, and temporary files are not cleaned up after the Cloudinary upload. |
-| **Errors return HTTP 200** | The API signals failure with `success: false` in the body, so clients must check that flag. |
-| **No emails or SMS** | Booking, cancellation and payment events produce no notifications outside the app. |
-| **No automated tests or CI yet** | Verification so far has been manual. |
-| **No rate limiting** | Login and registration are not throttled against repeated attempts. |
-| **Free-tier cold starts** | The first request after inactivity can be slow on a free hosting plan. |
-
-<br/>
-
----
-
-## 🧭 Roadmap
-
-- [ ] Razorpay webhooks so payments confirm even if the browser closes
-- [ ] Automatic refunds when a paid appointment is cancelled
-- [ ] Release the slot when a doctor cancels, and make slot booking atomic
-- [ ] Per-doctor schedules, working days and leave
-- [ ] Appointment rescheduling
-- [ ] Email and SMS reminders for patients and doctors
-- [ ] Token expiry, refresh tokens and rate limiting on auth routes, plus a role-claim admin token
-- [ ] Server-side auth and rate limiting for DocTalk
-- [ ] File-type and size validation for uploads
-- [ ] Automated test suite and a CI pipeline
-- [ ] Video consultations
-- [ ] Patient medical history and prescriptions
-
-<br/>
-
----
-
-## 📄 License
-
-Released under the **MIT License**.
-
-<br/>
-
----
-
-## 🙏 Acknowledgments
-
-[React](https://react.dev) · [Vite](https://vitejs.dev) · [Tailwind CSS](https://tailwindcss.com) · [Express](https://expressjs.com) · [Mongoose](https://mongoosejs.com) · [MongoDB Atlas](https://www.mongodb.com/atlas) · [Cloudinary](https://cloudinary.com) · [Razorpay](https://razorpay.com) · [Groq](https://groq.com) · [React Toastify](https://fkhadra.github.io/react-toastify) · [Font Awesome](https://fontawesome.com) · [Render](https://render.com)
-
-<br/>
-
-<div align="center">
-
-**Healthcare access, simplified: designed and built end to end.**
-
-<sub>Docify · Your Health, Our Priority · 2026</sub>
-
-</div>
