@@ -3,10 +3,8 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import appointmentModel from "../models/appointmentModel.js"
 
-
 const changeAvailability = async (req, res) => {
     try {
-
         const { docId } = req.body
 
         const docData = await doctorModel.findById(docId)
@@ -14,16 +12,13 @@ const changeAvailability = async (req, res) => {
         res.json({ success: true, message: 'Availability Changed' })
 
     } catch (error) {
-
         console.log(error)
         res.json({ success: false, message: error.message })
-
     }
 }
 
 const doctorList = async (req, res) => {
     try {
-
         const doctors = await doctorModel.find({}).select(['-password', '-email'])
 
         res.json({ success: true, doctors })
@@ -34,11 +29,9 @@ const doctorList = async (req, res) => {
     }
 }
 
-
 // API for doctor login
 const loginDoctor = async (req, res) => {
     try {
-
         const { email, password } = req.body
         const doctor = await doctorModel.findOne({ email })
 
@@ -49,7 +42,6 @@ const loginDoctor = async (req, res) => {
         const isMatch = await bcrypt.compare(password, doctor.password)
 
         if (isMatch) {
-
             const token = jwt.sign({ id: doctor._id }, process.env.JWT_SECRET)
 
             res.json({ success: true, token })
@@ -67,7 +59,6 @@ const loginDoctor = async (req, res) => {
 // API to get doctor appointment for doctor panel
 const appointmentsDotor = async (req, res) => {
     try {
-
         const { docId } = req.body
         const appointments = await appointmentModel.find({ docId })
 
@@ -82,16 +73,13 @@ const appointmentsDotor = async (req, res) => {
 // API to mark appointment completed for doctor panel
 const appointmentComplete = async (req, res) => {
     try {
-
         const { docId, appointmentId } = req.body
 
         const appointmentData = await appointmentModel.findById(appointmentId)
 
         if (appointmentData && appointmentData.docId === docId) {
-
             await appointmentModel.findByIdAndUpdate(appointmentId, { isCompleted: true })
             return res.json({ success: true, message: 'Appointment Completed' })
-
         } else {
             return res.json({ success: false, message: 'Mark Failed' })
         }
@@ -102,19 +90,16 @@ const appointmentComplete = async (req, res) => {
     }
 }
 
-// API to cancle appointment for doctor panel
+// API to cancel appointment for doctor panel
 const appointmentCancel = async (req, res) => {
     try {
-
         const { docId, appointmentId } = req.body
 
         const appointmentData = await appointmentModel.findById(appointmentId)
 
         if (appointmentData && appointmentData.docId === docId) {
-
             await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true })
             return res.json({ success: true, message: 'Appointment Cancelled' })
-
         } else {
             return res.json({ success: false, message: 'Cancellation Failed' })
         }
@@ -127,9 +112,7 @@ const appointmentCancel = async (req, res) => {
 
 // API to get dashboard data for doctor panel
 const doctorDashboard = async (req, res) => {
-
     try {
-
         const { docId } = req.body
 
         const appointments = await appointmentModel.find({ docId })
@@ -163,14 +146,11 @@ const doctorDashboard = async (req, res) => {
         console.log(error)
         res.json({ success: false, message: error.message })
     }
-
 }
 
 // API to get doctor profile for doctor panel
-
 const doctorProfile = async (req, res) => {
     try {
-
         const { docId } = req.body
         const profileData = await doctorModel.findById(docId).select('-password')
 
@@ -183,10 +163,8 @@ const doctorProfile = async (req, res) => {
 }
 
 // API to update doctor profile data from doctor panel
-
 const updateDoctorProfile = async (req, res) => {
     try {
-
         const { docId, fees, address, available } = req.body
 
         await doctorModel.findByIdAndUpdate(docId, { fees, address, available })
@@ -199,6 +177,7 @@ const updateDoctorProfile = async (req, res) => {
     }
 }
 
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const searchDoctors = async (req, res) => {
     try {
@@ -212,21 +191,23 @@ const searchDoctors = async (req, res) => {
         // Split the query into multiple terms
         const searchTerms = q.trim().split(/\s+/); // Split by any whitespace
 
-        // Create a case-insensitive regex for each term
-        const searchRegexes = searchTerms.map(term => new RegExp(term, 'i'));
+        // Create a safe case-insensitive regex for each term
+        const searchRegexes = searchTerms.map(term => new RegExp(escapeRegex(term), 'i'));
 
-        // Search through multiple fields like name, speciality, etc.
-        const doctors = await doctorModel.find({
-            $or: [
-                { name: { $in: searchRegexes } },           // Search by doctor name
-                { speciality: { $in: searchRegexes } },      // Search by speciality
-                { degree: { $in: searchRegexes } },          // Search by degree
-                { experience: { $in: searchRegexes } },      // Search by experience
-                { about: { $in: searchRegexes } },           // Search by about section
-                { 'address.line1': { $in: searchRegexes } }, // Search by address line1
-                { 'address.line2': { $in: searchRegexes } }  // Search by address line2
-            ]
-        });
+        // Search through multiple fields like name, speciality, etc. and exclude password/email
+        const doctors = await doctorModel
+            .find({
+                $or: [
+                    { name: { $in: searchRegexes } },          // Search by doctor name
+                    { speciality: { $in: searchRegexes } },      // Search by speciality
+                    { degree: { $in: searchRegexes } },          // Search by degree
+                    { experience: { $in: searchRegexes } },      // Search by experience
+                    { about: { $in: searchRegexes } },           // Search by about section
+                    { 'address.line1': { $in: searchRegexes } }, // Search by address line1
+                    { 'address.line2': { $in: searchRegexes } }  // Search by address line2
+                ]
+            })
+            .select('-password -email');
 
         if (doctors.length > 0) {
             return res.status(200).json(doctors); // Return matching doctors
@@ -238,9 +219,6 @@ const searchDoctors = async (req, res) => {
         return res.status(500).json({ message: 'Internal server error' });
     }
 };
-
-
-
 
 export {
     changeAvailability,
